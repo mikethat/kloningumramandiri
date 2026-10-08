@@ -10,10 +10,39 @@ var PRICE = {
   tiketRp: 13000000,                 // tiket pesawat per dewasa (Rp)
   infantFactor: 0.1,                 // tiket infant = 10% tarif dewasa
   visaUsd: 155,                      // visa per jamaah (USD)
-  hiace: 2400,                       // Hiace fulltrip per trip (SAR)
+  hiace: 0,                          // diisi otomatis di bawah = harga Full Trip 1 untuk Hiace (SAR)
   mtHalf: 150, mtFull: 300,          // muthawwif setengah hari per sesi / full day per hari (SAR)
   hin: 100, hout: 85                 // handling kedatangan / kepulangan per orang (SAR)
 };
+// ===== TRANSPORT (SAR per kendaraan per trip) — sesuai Price List Transport terbaru =====
+// Urutan harga di setiap rute: Sonata/Camry, Staria, GMC 2023, Hiace 2023, Coaster 2024
+var TRANSPORT = {
+  vehicles: ["sonata", "staria", "gmc", "hiace", "coaster"],
+  routes: {
+    "jed-mkh": { n: "Jeddah Airport \u2192 Makkah Hotel",  p: [300, 400, 500, 450, 600] },
+    "mkh-mad": { n: "Makkah Hotel \u2192 Madinah Hotel",    p: [550, 650, 1050, 750, 1000] },
+    "mad-apt": { n: "Madinah Hotel \u2192 Madinah Airport", p: [250, 280, 400, 300, 450] },
+    "mad-mkh": { n: "Madinah Hotel \u2192 Makkah Hotel",    p: [550, 650, 1050, 750, 1000] },
+    "mkh-jed": { n: "Makkah Hotel \u2192 Jeddah Airport",   p: [300, 400, 500, 450, 600] },
+    "mkh-zy":  { n: "Makkah Ziyarat",                        p: [300, 400, 500, 450, 500] },
+    "mad-zy":  { n: "Madinah Ziyarat",                       p: [300, 400, 500, 400, 450] },
+    "jed-mad": { n: "Jeddah Airport \u2192 Madinah Hotel",  p: [550, 650, 1050, 750, 1000] }
+  },
+  // Full trip = gabungan rute di atas (jumlah harga per rute, tanpa diskon)
+  full: {
+    ft1: { n: "Full Trip 1: masuk Jeddah, pulang dari Madinah",
+           d: "Makkah dulu, lalu Madinah. Sudah termasuk ziarah di dua kota.",
+           legs: ["jed-mkh", "mkh-zy", "mkh-mad", "mad-zy", "mad-apt"] },
+    ft2: { n: "Full Trip 2: masuk Jeddah, pulang dari Jeddah",
+           d: "Madinah dulu, lalu Makkah. Sudah termasuk ziarah di dua kota.",
+           legs: ["jed-mad", "mad-zy", "mad-mkh", "mkh-zy", "mkh-jed"] }
+  },
+  legPrice: function (leg, vid) { return TRANSPORT.routes[leg].p[TRANSPORT.vehicles.indexOf(vid)]; },
+  fullPrice: function (fid, vid) {
+    return TRANSPORT.full[fid].legs.reduce(function (t, l) { return t + TRANSPORT.legPrice(l, vid); }, 0);
+  }
+};
+PRICE.hiace = TRANSPORT.fullPrice("ft1", "hiace");   // dipakai kalkulator & beranda
 // ===== TARIF HOTEL (SAR per kamar per malam, fullboard) =====
 // Format: Nama|bintang|ddmm-ddmm:double/triple/quad;...  (bulan 08-12 = 2026, bulan 01-07 = 2027)
 var HOTELS={
